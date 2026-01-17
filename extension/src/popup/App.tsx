@@ -268,7 +268,11 @@ function App() {
                 <div className="space-y-3">
                   <h3 className="font-bold text-gray-800 text-sm uppercase tracking-wider">Notable Clauses</h3>
                   {result.notable_clauses.map((clause, idx) => (
-                    <div key={idx} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div key={idx} className={`p-3 rounded-lg border shadow-sm hover:shadow-md transition-colors duration-300 ${
+                      clause.risk === 'low' ? 'bg-green-100 border-green-200' :
+                      clause.risk === 'medium' ? 'bg-amber-100 border-amber-200' :
+                      'bg-red-100 border-red-200'
+                    }`}>
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-semibold text-sm text-gray-900">{clause.title}</span>
                         <div className={`w-2 h-2 rounded-full ${
