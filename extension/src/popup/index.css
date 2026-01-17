@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+*,
+*::before,
+*::after {
+  font-family: 'Ubuntu', system-ui, -apple-system,
+               BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;

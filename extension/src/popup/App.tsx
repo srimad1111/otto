@@ -218,7 +218,7 @@ function App() {
                 <p className="text-gray-600 text-md mb-6">Ready to analyze this page for<br/><b>{persona.replace('_', ' ')}</b> risks.</p>
                 <button 
                   onClick={handleAnalyze}
-                  className="bg-blue-600 h-15 flex item-center justify-center text-[1.2rem] w-full hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"
+                  className="bg-cyan-500 h-15 flex item-center justify-center text-[1.2rem] w-full hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105"
                 >
                   Analyze Terms
                 </button>
@@ -228,7 +228,7 @@ function App() {
             {(status === 'reading' || status === 'thinking') && (
                <div className="text-center mt-4">
                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                 <p className="text-gray-500 text-sm">{status === 'reading' ? 'Reading page...' : 'Gemini is analyzing...'}</p>
+                 <p className="text-gray-500 text-sm">{status === 'reading' ? 'Reading page...' : 'Otto is cooking...'}</p>
                </div>
             )}
 
@@ -345,7 +345,7 @@ function App() {
             <button 
               onClick={handleVision}
               disabled={status === 'analyzing_vision'}
-              className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-full shadow-lg flex items-center gap-2"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded-full shadow-lg flex items-center gap-2"
             >
               {status === 'analyzing_vision' ? 'Scanning UI...' : 'Scan Visible Page'}
             </button>
