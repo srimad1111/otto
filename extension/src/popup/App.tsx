@@ -4,6 +4,8 @@ import { Mascot } from './Mascot';
 import { analyzeText, chatWithTerms, detectDarkPatterns } from '../api';
 import { AppStatus, MascotState, AnalysisResult, Persona, ChatMessage, DarkPatternResult } from '../types';
 import { marked } from 'marked';
+import {ScanEye,ScanText,BotMessageSquare} from 'lucide-react'
+
 
 function App() {
   const [activeTab, setActiveTab] = useState<'report' | 'chat' | 'vision'>('report');
@@ -182,7 +184,7 @@ function App() {
   return (
     <div className="w-[400px] h-[600px] bg-gray-50 flex flex-col relative overflow-hidden">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 p-4 flex justify-between items-center z-10">
+      <header className="bg-white border-b border-gray-200 p-4 flex justify-between items-center z-10 transition-shadow duration-200 shadow-sm">
         <div className="flex items-center gap-2">
           <img src="../../logo.png" alt="Otter logo" className='w-auto h-8' />
         </div>
@@ -375,26 +377,26 @@ function App() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="bg-white border-t border-gray-200 flex justify-around p-2 absolute bottom-0 w-full">
+      <nav className="bg-white border-t border-gray-200 flex justify-around p-2 absolute bottom-0 w-full round-t-md">
         <button 
           onClick={() => setActiveTab('report')}
           className={`flex flex-col items-center p-2 rounded-lg w-1/3 transition ${activeTab === 'report' ? 'text-blue-600 bg-blue-50' : 'text-gray-400'}`}
         >
-          <span className="text-xl">📄</span>
+          <span className="text-xl"><ScanText /></span>
           <span className="text-[10px] font-bold">Report</span>
         </button>
         <button 
           onClick={() => setActiveTab('chat')}
           className={`flex flex-col items-center p-2 rounded-lg w-1/3 transition ${activeTab === 'chat' ? 'text-blue-600 bg-blue-50' : 'text-gray-400'}`}
         >
-          <span className="text-xl">💬</span>
+          <span className="text-xl"><BotMessageSquare /></span>
           <span className="text-[10px] font-bold">Chat</span>
         </button>
         <button 
           onClick={() => setActiveTab('vision')}
           className={`flex flex-col items-center p-2 rounded-lg w-1/3 transition ${activeTab === 'vision' ? 'text-blue-600 bg-blue-50' : 'text-gray-400'}`}
         >
-          <span className="text-xl">👁️</span>
+          <span className="text-xl"><ScanEye /></span>
           <span className="text-[10px] font-bold">Vision</span>
         </button>
       </nav>
