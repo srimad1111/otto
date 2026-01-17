@@ -7,6 +7,31 @@ A Chrome Extension that analyzes Terms & Conditions (or any legal text) on a web
 *   **`extension/`**: Chrome Extension (Manifest V3, React, TypeScript, Vite, Tailwind CSS).
 *   **`backend/`**: Node.js Backend (Fastify, TypeScript, Gemini SDK, Zod).
 
+### System Architecture
+
+```mermaid
+graph TD
+    User((User))
+    Chrome[Chrome Extension]
+    Back[Backend API]
+    Store[(Trust Store / Cache)]
+    Gemini[Google Gemini AI]
+
+    User -- "Clicks Analyze" --> Chrome
+    Chrome -- "Sends Text/URL" --> Back
+    Back -- "Check Cache (Hash)" --> Store
+    Store -- "Return Cached Result" --> Back
+    
+    subgraph Analysis
+        Back -- "Prompt + Text" --> Gemini
+        Gemini -- "JSON Analysis" --> Back
+    end
+    
+    Back -- "Save Result" --> Store
+    Back -- "Analysis Result" --> Chrome
+    Chrome -- "Display Report" --> User
+```
+
 ## Prerequisites
 
 *   Node.js (v18 or higher)

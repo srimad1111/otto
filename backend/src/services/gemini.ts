@@ -117,7 +117,7 @@ export async function chatWithTerms(message: string, contextText: string, histor
 
   // We need to map the history format if necessary, or just append the system prompt
   // simple approach: just generate content with the new message + context if history is complex
-  // but gemini-2.5-flash supports chat history nicely.
+  // but gemini-1.5-flash supports chat history nicely.
   
   const contents = [
     { role: 'user', parts: [{ text: systemInstruction }] },

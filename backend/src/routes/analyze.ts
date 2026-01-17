@@ -12,19 +12,22 @@ export async function analyzeRoutes(fastify: FastifyInstance) {
       const body = AnalyzeRequestSchema.parse(request.body);
       
       // Check Cache
-      if (body.url) {
-        const cached = store.getAnalysis(body.url, body.persona);
-        if (cached) {
-          return { ...cached, from_cache: true, trust_score: store.getTrustScore(body.url) };
-        }
+      const cached = store.getAnalysis(body.url, body.text, body.persona);
+      if (cached) {
+        return { 
+          ...cached, 
+          from_cache: true, 
+          trust_score: body.url ? store.getTrustScore(body.url) : undefined 
+        };
       }
 
       const result = await analyzeText(body.text, body.persona);
       
-      // Save to Cache if URL provided
+      // Save to Cache
+      store.saveAnalysis(body.url, body.text, body.persona, result);
+      
+      // Inject trust score if URL exists
       if (body.url) {
-        store.saveAnalysis(body.url, body.persona, result);
-        // Inject trust score
         (result as any).trust_score = store.getTrustScore(body.url);
       }
 

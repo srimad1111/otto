@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 import { Mascot } from './Mascot';
 import { analyzeText, chatWithTerms, detectDarkPatterns } from '../api';
 import { AppStatus, MascotState, AnalysisResult, Persona, ChatMessage, DarkPatternResult } from '../types';
@@ -26,11 +27,44 @@ function App() {
   // Context Text (for chat)
   const [pageText, setPageText] = useState<string>('');
 
+  // Voice
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chatHistory, activeTab]);
+
+  const handleListen = () => {
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    if (!result) return;
+
+    const highRiskClauses = result.notable_clauses.filter(c => c.risk === 'high' || c.risk === 'medium');
+    
+    const textToRead = `
+      Terms and Conditions analysis. 
+      Overall Risk Level is ${result.overall_risk}.
+      Summary: ${result.summary}.
+      ${highRiskClauses.length > 0 ? 'Important warnings to note:' : ''}
+      ${highRiskClauses.map(c => `${c.title}: ${c.explanation}`).join('. ')}
+    `;
+
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.rate = 0.95; // Slightly slower for clarity
+    utterance.pitch = 1;
+    
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    
+    window.speechSynthesis.speak(utterance);
+  };
 
   const handleAnalyze = async () => {
     try {
@@ -211,11 +245,57 @@ function App() {
                       <h2 className="text-xl font-bold uppercase tracking-wide opacity-80">{result.overall_risk} Risk</h2>
                       {result.from_cache && <span className="text-[10px] text-gray-500">⚡ Cached Result</span>}
                     </div>
-                    <button onClick={handleHighlight} className="text-xs bg-white border border-gray-300 px-2 py-1 rounded hover:bg-gray-50">
-                      🖊️ Highlight
-                    </button>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={handleListen} 
+                        className={`text-xs px-2 py-1 rounded border transition ${
+                          isSpeaking 
+                            ? 'bg-red-100 border-red-300 text-red-700 animate-pulse' 
+                            : 'bg-white border-gray-300 hover:bg-gray-50'
+                        }`}
+                        title={isSpeaking ? "Stop Listening" : "Listen to Summary"}
+                      >
+                        {isSpeaking ? '🛑 Stop' : '🔊 Listen'}
+                      </button>
+                      <button onClick={handleHighlight} className="text-xs bg-white border border-gray-300 px-2 py-1 rounded hover:bg-gray-50">
+                        🖊️ Highlight
+                      </button>
+                    </div>
                   </div>
                   <p className="text-sm mt-2 text-gray-700 leading-relaxed">{result.summary}</p>
+                </div>
+
+                {/* Risk Distribution Chart */}
+                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                  <h3 className="font-bold text-gray-800 text-sm uppercase tracking-wider mb-2">Risk Distribution</h3>
+                  <div className="h-40 w-full flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: 'Low', value: result.notable_clauses.filter(c => c.risk === 'low').length, color: '#22c55e' },
+                            { name: 'Medium', value: result.notable_clauses.filter(c => c.risk === 'medium').length, color: '#eab308' },
+                            { name: 'High', value: result.notable_clauses.filter(c => c.risk === 'high').length, color: '#ef4444' }
+                          ].filter(d => d.value > 0)}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={30}
+                          outerRadius={50}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {[
+                            { name: 'Low', value: result.notable_clauses.filter(c => c.risk === 'low').length, color: '#22c55e' },
+                            { name: 'Medium', value: result.notable_clauses.filter(c => c.risk === 'medium').length, color: '#eab308' },
+                            { name: 'High', value: result.notable_clauses.filter(c => c.risk === 'high').length, color: '#ef4444' }
+                          ].filter(d => d.value > 0).map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
 
                 {/* Clauses */}

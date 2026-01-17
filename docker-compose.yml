@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    restart: unless-stopped
+    networks:
+      - otto-network
+
+networks:
+  otto-network:
+    driver: bridge
