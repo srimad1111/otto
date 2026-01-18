@@ -56,8 +56,13 @@ class TrustDatabase {
     }
   }
 
-  getTrustScore(url: string): number {
-    return this.trustScores.get(url) || 50; // Default to neutral
+  getTrustScore(url: string): string {
+    const score = this.trustScores.get(url) || 50; // Default to neutral
+    
+    if (score > 75) return "Excellent (76-100)";
+    if (score >= 46) return "Good (46-75)";
+    if (score >= 26) return "Average (26-45)";
+    return "Poor (0-25)";
   }
 }
 

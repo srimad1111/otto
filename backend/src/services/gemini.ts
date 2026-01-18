@@ -20,27 +20,64 @@ export async function analyzeText(text: string, persona: string = 'standard'): P
 
   const role = personaPrompts[persona] || personaPrompts['standard'];
 
+  let specificInstructions = "";
+  let jsonFormat = "";
+
+  if (persona === 'standard') {
+    specificInstructions = `
+      This is the "Standard Mode" analysis. 
+      Instead of a long summary, you MUST extract two specific lists of data points found in the text:
+      1. "Data Used to Track You": Information used for tracking, analytics, or ads (e.g., Location, Device ID, Browsing History).
+      2. "Data Linked to You": Personal information linked to the user's identity (e.g., Email, Name, Phone Number, Purchase History).
+      
+      Keep items in these lists extremely short (1-2 words max).
+    `;
+    jsonFormat = `
+      {
+        "overall_risk": "low" | "medium" | "high",
+        "summary": "Standard Analysis",
+        "data_collection": {
+          "data_used_to_track_you": ["string", "string"],
+          "data_linked_to_you": ["string", "string"]
+        },
+        "notable_clauses": [
+          { 
+            "title": "string", 
+            "risk": "low" | "medium" | "high", 
+            "explanation": "string",
+            "quote": "string (EXACT text match from input)"
+          }
+        ]
+      }
+    `;
+  } else {
+    specificInstructions = "Provide a brief summary.";
+    jsonFormat = `
+      {
+        "overall_risk": "low" | "medium" | "high",
+        "summary": "string",
+        "notable_clauses": [
+          { 
+            "title": "string", 
+            "risk": "low" | "medium" | "high", 
+            "explanation": "string",
+            "quote": "string (EXACT text match from input)"
+          }
+        ]
+      }
+    `;
+  }
+
   const prompt = `
     ${role}
     Analyze the following Terms and Conditions text. 
     Identify the overall risk level (low, medium, high) based on user-hostile clauses specifically relevant to your persona.
-    Provide a brief summary.
+    ${specificInstructions}
     List notable clauses with their titles, risk levels, and explanations.
     CRITICAL: For each notable clause, you MUST extract a short, unique "quote" (substring) from the original text that represents the bad clause. This quote will be used to highlight the text in the browser. It must be exact.
 
     Return ONLY valid JSON in the following format:
-    {
-      "overall_risk": "low" | "medium" | "high",
-      "summary": "string",
-      "notable_clauses": [
-        { 
-          "title": "string", 
-          "risk": "low" | "medium" | "high", 
-          "explanation": "string",
-          "quote": "string (EXACT text match from input)"
-        }
-      ]
-    }
+    ${jsonFormat}
 
     Text to analyze (truncated):
     ${text.substring(0, 30000)}

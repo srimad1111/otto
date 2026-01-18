@@ -11,7 +11,11 @@ export const AnalysisResultSchema = z.object({
   overall_risk: z.enum(['low', 'medium', 'high']),
   summary: z.string(),
   notable_clauses: z.array(NotableClauseSchema),
-  trust_score: z.number().optional().describe("Community trust score 0-100"),
+  trust_score: z.string().optional().describe("Community trust score range"),
+  data_collection: z.object({
+    data_used_to_track_you: z.array(z.string()),
+    data_linked_to_you: z.array(z.string())
+  }).optional(),
 });
 
 export type AnalysisResult = z.infer<typeof AnalysisResultSchema>;

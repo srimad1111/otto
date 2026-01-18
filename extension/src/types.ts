@@ -15,8 +15,12 @@ export interface AnalysisResult {
   overall_risk: 'low' | 'medium' | 'high';
   summary: string;
   notable_clauses: NotableClause[];
-  trust_score?: number;
+  trust_score?: string;
   from_cache?: boolean;
+  data_collection?: {
+    data_used_to_track_you: string[];
+    data_linked_to_you: string[];
+  };
 }
 
 export interface DarkPatternResult {

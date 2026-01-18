@@ -4,8 +4,18 @@ import { Mascot } from './Mascot';
 import { analyzeText, chatWithTerms, detectDarkPatterns } from '../api';
 import { AppStatus, MascotState, AnalysisResult, Persona, ChatMessage, DarkPatternResult } from '../types';
 import { marked } from 'marked';
-import {ScanEye,ScanText,BotMessageSquare} from 'lucide-react'
+import {ScanEye,ScanText,BotMessageSquare, MapPin, Smartphone, Mail, User, Globe, CreditCard, FileText, ShieldAlert} from 'lucide-react'
 
+const getIcon = (text: string) => {
+  const t = text.toLowerCase();
+  if (t.includes('location') || t.includes('gps') || t.includes('address')) return <MapPin size={10} />;
+  if (t.includes('device') || t.includes('id') || t.includes('ip') || t.includes('mac')) return <Smartphone size={10} />;
+  if (t.includes('email') || t.includes('mail')) return <Mail size={10} />;
+  if (t.includes('name') || t.includes('identity') || t.includes('age') || t.includes('gender')) return <User size={10} />;
+  if (t.includes('browse') || t.includes('history') || t.includes('web')) return <Globe size={10} />;
+  if (t.includes('pay') || t.includes('card') || t.includes('purchase') || t.includes('financial')) return <CreditCard size={10} />;
+  return <FileText size={10} />;
+};
 
 function App() {
   const [activeTab, setActiveTab] = useState<'report' | 'chat' | 'vision'>('report');
@@ -49,10 +59,16 @@ function App() {
 
     const highRiskClauses = result.notable_clauses.filter(c => c.risk === 'high' || c.risk === 'medium');
     
+    let summaryText = result.summary;
+    if (result.data_collection) {
+       summaryText = "Data used to track you includes: " + result.data_collection.data_used_to_track_you.join(', ') + ". ";
+       summaryText += "Data linked to you includes: " + result.data_collection.data_linked_to_you.join(', ') + ".";
+    }
+
     const textToRead = `
       Terms and Conditions analysis. 
       Overall Risk Level is ${result.overall_risk}.
-      Summary: ${result.summary}.
+      ${summaryText}
       ${highRiskClauses.length > 0 ? 'Important warnings to note:' : ''}
       ${highRiskClauses.map(c => `${c.title}: ${c.explanation}`).join('. ')}
     `;
@@ -191,8 +207,16 @@ function App() {
         
         <div className="flex items-center gap-2">
           {result?.trust_score && (
-            <div className={`text-xs px-2 py-1 rounded font-bold ${result.trust_score > 70 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-              Trust: {result.trust_score}
+            <div className={`text-xs px-3 py-1 rounded-full font-bold shadow-sm ${
+              result.trust_score.includes('Excellent') ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+              result.trust_score.includes('Good') ? 'bg-green-100 text-green-800 border border-green-200' :
+              result.trust_score.includes('Average') ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+              'bg-red-100 text-red-800 border border-red-200'
+            }`}>
+              {result.trust_score.includes('Excellent') ? 'Very Minimal Risk' :
+               result.trust_score.includes('Good') ? 'Good' :
+               result.trust_score.includes('Average') ? 'Average Risk' :
+               'High Risk'}
             </div>
           )}
           <button 
@@ -243,7 +267,11 @@ function App() {
                 }`}>
                   <div className="flex justify-between items-start">
                     <div>
-                      <h2 className="text-xl font-bold uppercase tracking-wide opacity-80">{result.overall_risk} Risk</h2>
+                      <h2 className="text-xl font-bold uppercase tracking-wide opacity-80">
+                        {result.overall_risk === 'medium' ? 'Average Risk' : 
+                         result.overall_risk === 'low' ? 'Minimal Risk' : 
+                         'High Risk'}
+                      </h2>
                       {result.from_cache && <span className="text-[10px] text-gray-500">⚡ Cached Result</span>}
                     </div>
                     <div className="flex gap-2">
@@ -263,7 +291,59 @@ function App() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-sm mt-2 text-gray-700 leading-relaxed">{result.summary}</p>
+                  {result.data_collection ? (
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                       {/* Data Used to Track You */}
+                       <div className={`p-2 rounded border ${
+                         result.overall_risk === 'low' ? 'bg-green-50 border-green-200 text-green-800' :
+                         result.overall_risk === 'medium' ? 'bg-amber-50 border-amber-200 text-amber-800' :
+                         'bg-red-50 border-red-200 text-red-800'
+                       }`}>
+                          <h4 className="text-[10px] uppercase font-bold mb-2 flex items-center gap-1">
+                            <ShieldAlert size={12} /> Data Used to Track You
+                          </h4>
+                          <div className="flex flex-wrap gap-1">
+                             {result.data_collection.data_used_to_track_you.length > 0 ? (
+                               result.data_collection.data_used_to_track_you.map((item, i) => (
+                                 <span key={i} className={`text-[10px] bg-white border px-2 py-1 rounded-full flex items-center gap-1 shadow-sm ${
+                                   result.overall_risk === 'low' ? 'border-green-200 text-green-700' :
+                                   result.overall_risk === 'medium' ? 'border-amber-200 text-amber-700' :
+                                   'border-red-200 text-red-700'
+                                 }`}>
+                                   {getIcon(item)} {item}
+                                 </span>
+                               ))
+                             ) : <span className="text-[10px] text-gray-400 italic">None detected</span>}
+                          </div>
+                       </div>
+                       
+                       {/* Data Linked to You */}
+                       <div className={`p-2 rounded border ${
+                         result.overall_risk === 'low' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+                         result.overall_risk === 'medium' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
+                         'bg-orange-50 border-orange-200 text-orange-800'
+                       }`}>
+                          <h4 className="text-[10px] uppercase font-bold mb-2 flex items-center gap-1">
+                             <User size={12} /> Data Linked to You
+                          </h4>
+                          <div className="flex flex-wrap gap-1">
+                             {result.data_collection.data_linked_to_you.length > 0 ? (
+                               result.data_collection.data_linked_to_you.map((item, i) => (
+                                 <span key={i} className={`text-[10px] bg-white border px-2 py-1 rounded-full flex items-center gap-1 shadow-sm ${
+                                   result.overall_risk === 'low' ? 'border-emerald-200 text-emerald-700' :
+                                   result.overall_risk === 'medium' ? 'border-yellow-200 text-yellow-700' :
+                                   'border-orange-200 text-orange-700'
+                                 }`}>
+                                   {getIcon(item)} {item}
+                                 </span>
+                               ))
+                             ) : <span className="text-[10px] text-gray-400 italic">None detected</span>}
+                          </div>
+                       </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm mt-2 text-gray-700 leading-relaxed">{result.summary}</p>
+                  )}
                 </div>
 
                 {/* Clauses */}
